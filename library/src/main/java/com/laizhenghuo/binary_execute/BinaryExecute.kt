@@ -10,7 +10,7 @@ import java.io.IOException
 object BinaryExecute {
 
     ///是否初始化
-    private var initialized = false;
+    private var initialized = false
 
     ///Python路径：环境变量
     private var pythonPath: String? = null
@@ -36,16 +36,14 @@ object BinaryExecute {
 
     private const val baseName = "binary-execute"
     private const val packagesRoot = "packages"
-    private const val pythonBinName = "libpython.so"
+    private const val pythonBinName = "libpython.bin.so"
     private const val pythonLibName = "libpython.zip.so"
     private const val pythonDirName = "python"
     private const val ffmpegDirName = "ffmpeg"
     private const val ffmpegBinName = "libffmpeg.so"
-    private const val binaryName = "yt-dlp"
+    private const val binaryName = "print"
     private const val binaryDirName = binaryName
     private const val binaryBin = binaryName
-    private const val pythonLibVersion = "pythonLibVersion"
-
 
     @JvmStatic
     fun getInstance() = this
@@ -71,19 +69,19 @@ object BinaryExecute {
 
         binaryPath = File(binaryDir, binaryBin).absolutePath
 
-        println(binaryPath)
+        println("binaryPath: $binaryPath")
 
         ENV_LD_LIBRARY_PATH = "${pythonDir.absolutePath}/usr/lib:${ffmpegDir.absolutePath}/usr/lib"
 
-        println(ENV_LD_LIBRARY_PATH)
+        println("ENV_LD_LIBRARY_PATH: $ENV_LD_LIBRARY_PATH")
 
         ENV_SSL_CERT_FILE = "${pythonDir.absolutePath}/usr/etc/tls/cert.pem"
 
-        println(ENV_SSL_CERT_FILE)
+        println("ENV_SSL_CERT_FILE: $ENV_SSL_CERT_FILE")
 
         ENV_PYTHON_HOME = "${pythonDir.absolutePath}/usr"
 
-        println(ENV_PYTHON_HOME)
+        println("ENV_PYTHON_HOME: $ENV_PYTHON_HOME")
 
         initPython(pythonDir)
         initBinary(appContext,binaryDir)
@@ -111,10 +109,11 @@ object BinaryExecute {
         val binary = File(binaryDir, binaryBin)
         if (!binary.exists()) {
             try {
-                val binaryFileId = R.raw.ytdlp
+                val binaryFileId = R.raw.print
                 val outputFile = File(binary.absolutePath)
                 copyRawResourceToFile(appContext,binaryFileId,outputFile)
             } catch (e:Exception) {
+                FileUtils.deleteQuietly(binaryDir)
                 println(e)
             }
         }
@@ -138,18 +137,18 @@ object BinaryExecute {
         check(initialized) { "instance not initialized" }
     }
 
-    fun execute(){
+    fun execute(url:String){
         assertInit()
         val process: Process
         val outBuffer = StringBuffer() //stdout
         val errBuffer = StringBuffer() //stderr
         val command: MutableList<String?> = ArrayList()
-        command.addAll(listOf(pythonPath!!, binaryPath!!))
+        command.addAll(listOf(pythonPath!!, binaryPath!!, url))
         val processBuilder = ProcessBuilder(command)
         processBuilder.environment().apply {
             this["LD_LIBRARY_PATH"] = ENV_LD_LIBRARY_PATH
             this["SSL_CERT_FILE"] = ENV_SSL_CERT_FILE
-            this["PATH"] = System.getenv("PATH")!! + ":" + binDir!!.absolutePath
+            this["PATH"] = System.getenv("PATH")!! +":" + binDir!!.absolutePath
             this["PYTHONHOME"] = ENV_PYTHON_HOME
             this["HOME"] = ENV_PYTHON_HOME
         }

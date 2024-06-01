@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         applicationScope.launch((Dispatchers.IO)) {
             try {
                 BinaryExecute.init(this@MainActivity)
-                BinaryExecute.getInstance().execute()
+                BinaryExecute.getInstance().execute("https://docs.python.org/zh-cn/3.8//library/zipapp.html")
             } catch (e:Exception) {
                 println(e)
             }
