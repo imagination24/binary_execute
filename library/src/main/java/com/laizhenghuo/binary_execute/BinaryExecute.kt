@@ -84,12 +84,12 @@ object BinaryExecute {
         println("ENV_PYTHON_HOME: $ENV_PYTHON_HOME")
 
         initPython(pythonDir)
-        initBinary(appContext,binaryDir)
+        initBinary(appContext, binaryDir)
 
         initialized = true
     }
 
-    private fun initPython(pythonDir:File) {
+    private fun initPython(pythonDir: File) {
         val pythonLib = File(binDir, pythonLibName)
         println(pythonLib.absolutePath)
         if (!pythonDir.exists()) {
@@ -104,15 +104,15 @@ object BinaryExecute {
         }
     }
 
-    private fun initBinary(appContext: Context, binaryDir:File) {
+    private fun initBinary(appContext: Context, binaryDir: File) {
         if (!binaryDir.exists()) binaryDir.mkdirs()
         val binary = File(binaryDir, binaryBin)
         if (!binary.exists()) {
             try {
                 val binaryFileId = R.raw.print
                 val outputFile = File(binary.absolutePath)
-                copyRawResourceToFile(appContext,binaryFileId,outputFile)
-            } catch (e:Exception) {
+                copyRawResourceToFile(appContext, binaryFileId, outputFile)
+            } catch (e: Exception) {
                 FileUtils.deleteQuietly(binaryDir)
                 println(e)
             }
@@ -137,7 +137,8 @@ object BinaryExecute {
         check(initialized) { "instance not initialized" }
     }
 
-    fun execute(url:String){
+    fun execute(url: String)
+            : String {
         assertInit()
         val process: Process
         val outBuffer = StringBuffer() //stdout
@@ -148,7 +149,7 @@ object BinaryExecute {
         processBuilder.environment().apply {
             this["LD_LIBRARY_PATH"] = ENV_LD_LIBRARY_PATH
             this["SSL_CERT_FILE"] = ENV_SSL_CERT_FILE
-            this["PATH"] = System.getenv("PATH")!! +":" + binDir!!.absolutePath
+            this["PATH"] = System.getenv("PATH")!! + ":" + binDir!!.absolutePath
             this["PYTHONHOME"] = ENV_PYTHON_HOME
             this["HOME"] = ENV_PYTHON_HOME
         }
@@ -159,7 +160,7 @@ object BinaryExecute {
         }
         val outStream = process.inputStream
         val errStream = process.errorStream
-        val stdOutProcessor = StreamProcessExtractor(outBuffer, outStream, null)
+        val stdOutProcessor = StreamGobbler(outBuffer, outStream)
         val stdErrProcessor = StreamGobbler(errBuffer, errStream)
         try {
             stdOutProcessor.join()
@@ -171,7 +172,6 @@ object BinaryExecute {
         }
         val out = outBuffer.toString()
         val err = errBuffer.toString()
-        println(out)
-        println(err)
+        return "out:$out  $err"
     }
 }
